@@ -15,10 +15,24 @@
             event.preventDefault();
             const youtubeUrl = document.getElementById('youtube-url').value;
             const videoId = getYoutubeVideoId(youtubeUrl);
-            document.getElementById('message').innerText = '2分待て';
-            setTimeout(function() {
-                window.location.href = `https://pokemogukunn.github.io/yunkunndaunnro-do.github.io/download=${videoId}`;
-            }, 120000); // 2分 (120秒) 後にリダイレクト
+            
+            fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `videoId=${videoId}`
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('message').innerText = '2分待て';
+                setTimeout(function() {
+                    window.location.href = `https://pokemogukunn.github.io/yunkunndaunnro-do.github.io/download=${videoId}`;
+                }, 120000); // 2分 (120秒) 後にリダイレクト
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
         
         function getYoutubeVideoId(url) {
