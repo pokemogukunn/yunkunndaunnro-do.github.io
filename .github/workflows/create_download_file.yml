@@ -1,0 +1,38 @@
+name: Create Download File
+
+on:
+  workflow_dispatch:
+    inputs:
+      videoId:
+        description: 'YouTube Video ID'
+        required: true
+
+jobs:
+  create-file:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Create download file
+        run: |
+          VIDEO_ID=${{ github.event.inputs.videoId }}
+          FILE_PATH="download=${VIDEO_ID}.html"
+          echo "<!DOCTYPE html>
+<html>
+<head>
+    <title>Download ${VIDEO_ID}</title>
+</head>
+<body>
+    <h1>Download Video</h1>
+    <iframe width='560' height='315' src='https://www.youtube.com/embed/${VIDEO_ID}' frameborder='0' allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>
+</body>
+</html>" > $FILE_PATH
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add $FILE_PATH
+          git commit -m "Add download file for ${VIDEO_ID}"
+          git push
