@@ -3,16 +3,17 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
-require('dotenv').config(); // dotenvパッケージを読み込み
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/generate', (req, res) => {
+app.post('/download', (req, res) => {
     const videoId = req.body.videoId;
-    const filePath = path.join(__dirname, 'videoplayback.mp4');
+    const filePath = path.join(__dirname, 'public', `videoplayback_${videoId}.mp4`);
+    const downloadUrl = `https://pokemogukunn.github.io/yunkunndaunnro-do.github.io/videoplayback_${videoId}.mp4`;
 
     // YouTube動画をダウンロードするためのコマンド
     const downloadCommand = `youtube-dl -o ${filePath} https://www.youtube.com/watch?v=${videoId}`;
@@ -20,11 +21,11 @@ app.post('/generate', (req, res) => {
     exec(downloadCommand, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error: ${error.message}`);
-            return res.status(500).send('Internal Server Error');
+            return res.status(500).json({ success: false });
         }
         if (stderr) {
             console.error(`stderr: ${stderr}`);
-            return res.status(500).send('Internal Server Error');
+            return res.status(500).json({ success: false });
         }
         console.log(`stdout: ${stdout}`);
 
@@ -33,21 +34,21 @@ app.post('/generate', (req, res) => {
             git config --global user.email "actions@github.com"
             git config --global user.name "GitHub Actions"
             git add ${filePath}
-            git commit -m "Add videoplayback.mp4 for ${videoId}"
+            git commit -m "Add videoplayback_${videoId}.mp4"
             git push https://${process.env.GITHUB_TOKEN}@github.com/${process.env.GITHUB_REPO}.git main
         `;
 
         exec(gitCommands, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Error: ${error.message}`);
-                return res.status(500).send('Internal Server Error');
+                return res.status(500).json({ success: false });
             }
             if (stderr) {
                 console.error(`stderr: ${stderr}`);
-                return res.status(500).send('Internal Server Error');
+                return res.status(500).json({ success: false });
             }
             console.log(`stdout: ${stdout}`);
-            res.send('File generated and pushed to GitHub');
+            res.json({ success: true, downloadUrl });
         });
     });
 });
