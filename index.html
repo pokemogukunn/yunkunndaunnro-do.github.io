@@ -15,20 +15,24 @@
             event.preventDefault();
             const youtubeUrl = document.getElementById('youtube-url').value;
             const videoId = getYoutubeVideoId(youtubeUrl);
-            
-            fetch('/generate', {
+
+            fetch('/download', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: `videoId=${videoId}`
             })
-            .then(response => response.text())
+            .then(response => response.json())
             .then(data => {
-                document.getElementById('message').innerText = '2分待て';
-                setTimeout(function() {
-                    window.location.href = `https://pokemogukunn.github.io/yunkunndaunnro-do.github.io/download=${videoId}`;
-                }, 120000); // 2分 (120秒) 後にリダイレクト
+                if (data.success) {
+                    document.getElementById('message').innerText = '2分待て';
+                    setTimeout(function() {
+                        window.location.href = data.downloadUrl;
+                    }, 120000); // 2分 (120秒) 後にリダイレクト
+                } else {
+                    document.getElementById('message').innerText = 'エラーが発生しました';
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
